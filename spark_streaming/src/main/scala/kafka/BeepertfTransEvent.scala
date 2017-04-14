@@ -86,15 +86,16 @@ object BeepertfTransEvent {
     }
 
     stream.foreachRDD(rdd => {
+      val valueRDD = rdd.map(line => { line.value()})
+
       if(conf.getBoolean("spark_streaming.save_hdfs")){
         val hdfs = conf.getString("hadoop.hdfs")
         val currentNext = DateUtil.getNextTenMinute(DateUtil.getCurrentMills)
         val topicPath = hdfs + File.separator + topic + File.separator + currentNext + File.separator + DateUtil.getCurrentMills
-        rdd.saveAsTextFile(topicPath)
+        valueRDD.saveAsTextFile(topicPath)
       }
 
-      val line = rdd.map(line => {line.value()})
-        .filter(line => { StringUtils.isNoneEmpty(line) && StringUtils.isNoneBlank(line) })
+      val line = valueRDD.filter(line => { StringUtils.isNoneEmpty(line) && StringUtils.isNoneBlank(line) })
         .map(line => { line.trim() })
         .map(line =>  parseMessage(line))
         .filter(line => ! line.isEmpty)
