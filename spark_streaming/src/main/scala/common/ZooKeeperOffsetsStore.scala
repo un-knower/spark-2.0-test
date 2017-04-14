@@ -54,10 +54,9 @@ class ZooKeeperOffsetsStore(zkHosts: String) extends OffsetsStore {
     val topicPath = "/" + topic
     val offsetsRangesStr = offsetRanges.map(offsetRange => s"${offsetRange.partition}:${offsetRange.fromOffset}")
       .mkString(",")
-    println(s"Writing offsets to ZooKeeper: ${offsetsRangesStr}")
+    log.info(s"Writing offsets to ZooKeeper: ${offsetsRangesStr}")
     zkUtils.updatePersistentPath(topicPath,offsetsRangesStr)
     zkUtils.deletePathRecursive(topicPath)
   }
-
 
 }

@@ -128,6 +128,7 @@ object BeepertfTransEvent {
         log.info(s"zookeeper offset: topic:${offsetRange.topic} partition:${offsetRange.partition} " +
           s"fromOffset:${offsetRange.fromOffset} endOffset:${offsetRange.untilOffset}")
       })
+
       val offsetsStore = new ZooKeeperOffsetsStore(conf.getString("consumer.zookeeper"))
       offsetsStore.saveOffsets(topic,offsetRanges)
 
