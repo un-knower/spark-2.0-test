@@ -2,7 +2,7 @@ package kafka
 
 import java.util.concurrent.TimeUnit
 
-import org.apache.spark.sql.streaming.ProcessingTime
+import org.apache.spark.sql.streaming.{OutputMode, ProcessingTime}
 import org.apache.spark.sql.{Row, ForeachWriter, SparkSession}
 
 /**
@@ -11,11 +11,6 @@ import org.apache.spark.sql.{Row, ForeachWriter, SparkSession}
 object StructuredKafkaWordCount {
 
 	def main(args: Array[String]): Unit = {
-		//    if (args.length < 3) {
-		//      System.err.println("Usage: StructuredKafkaWordCount <bootstrap-servers> " +
-		//        "<subscribe-type> <topics>")
-		//      System.exit(1)
-		//    }
 
 		val spark = SparkSession
 			.builder
@@ -38,29 +33,36 @@ object StructuredKafkaWordCount {
 			.as[String]
 
 		// Generate running word count
-		//val wordCounts = lines.flatMap(_.split(" ")).groupBy("value").count()
-			val wordCounts = lines.flatMap(_.split(" "))
+		// val wordCounts = lines.flatMap(_.split(" ")).groupBy("value").count()
+		   val wordCounts = lines.flatMap(_.split(" "))
 
-		// Start running the query that prints the running counts to the console
+//		val query = wordCounts.writeStream
+//			.outputMode(OutputMode.Complete())
+//			.option("checkpointLocation", "file:///Users/yxl/data/spark.dir/checkpoint/kafka")
+//		    .format("console")
+//		    .trigger(ProcessingTime.create(10,TimeUnit.SECONDS))
+//		    .start()
+
+		// 使用append 模式的前提是不能使用聚合
 		val query = wordCounts.writeStream
 			//.outputMode("complete")
 			.outputMode("append")
 			.option("checkpointLocation", "file:///Users/yxl/data/spark.dir/checkpoint/kafka")
 			.foreach(new ForeachWriter[String] {
+				override def open(partitionId: Long, version: Long): Boolean = {
+					println(s"open  partitionId:$partitionId version:$version")
+					true
+				}
+
 				override def process(value: String): Unit = {
-					println(s"value:$value")
+					println(s"process row:$value")
 				}
 
 				override def close(errorOrNull: Throwable): Unit = {
-					println("foreach close")
-				}
-
-				override def open(partitionId: Long, version: Long): Boolean = {
-					println("foreach open")
-					true
+					println("close")
 				}
 			})
-			.trigger((ProcessingTime.create(10, TimeUnit.SECONDS)))
+			.trigger((ProcessingTime.create(1, TimeUnit.MINUTES)))
 			.start()
 
 		query.awaitTermination()
