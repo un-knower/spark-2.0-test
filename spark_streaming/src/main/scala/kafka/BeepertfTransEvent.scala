@@ -32,7 +32,7 @@ object BeepertfTransEvent {
 
   def main(args: Array[String]) {
 
-    val conf = ConfigFactory.load("config_dev.conf")
+    val conf = ConfigFactory.load("config_pro.conf")
 
     val sparkConf = new SparkConf().setAppName("StateDirectKafkaWordCount")
     sparkConf.setMaster(conf.getString("spark_streaming.spark_master"))
