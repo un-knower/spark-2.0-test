@@ -1,6 +1,8 @@
 package kafka
 
 
+import java.io.File
+
 import _root_.common.{DateUtil, ZooKeeperOffsetsStore}
 import org.apache.commons.lang3.StringUtils
 import org.apache.kafka.common.TopicPartition
@@ -41,7 +43,9 @@ object BeepertfTransEvent {
 
     val ssc = new StreamingContext(sparkConf, Seconds(10))
 
-    ssc.checkpoint(conf.getString("spark_streaming.spark_checkpoint"))
+    val topic = conf.getString("consumer.topic")
+
+    ssc.checkpoint(conf.getString("spark_streaming.spark_checkpoint") + File.pathSeparator + topic)
 
     val kafkaParams = Map[String, Object](
       "bootstrap.servers" -> conf.getString("consumer.bootstrap_servers"),
@@ -54,8 +58,6 @@ object BeepertfTransEvent {
       "session.timeout.ms" -> (5 * 60 * 1000 * 4).toString,
       "request.timeout.ms" -> (5 * 60 * 1000 * 5).toString
     )
-
-    val topic = conf.getString("consumer.topic")
 
     val shouldOffsetStore = conf.getBoolean("consumer.offset_store")
 
@@ -84,6 +86,13 @@ object BeepertfTransEvent {
     }
 
     stream.foreachRDD(rdd => {
+      if(conf.getBoolean("spark_streaming.save_hdfs")){
+        val hdfs = conf.getString("hadoop.hdfs")
+        val currentNext = DateUtil.getNextTenMinute(DateUtil.getCurrentMills)
+        val topicPath = hdfs + File.pathSeparator + topic + File.pathSeparator + currentNext
+        rdd.saveAsTextFile(topicPath)
+      }
+
       val line = rdd.map(line => {line.value()})
         .filter(line => { StringUtils.isNoneEmpty(line) && StringUtils.isNoneBlank(line) })
         .map(line => { line.trim() })

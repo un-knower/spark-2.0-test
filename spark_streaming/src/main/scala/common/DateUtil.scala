@@ -1,7 +1,7 @@
 package common
 
 import java.text.SimpleDateFormat
-import java.util.Calendar
+import java.util.{Date, Calendar}
 
 /**
   * Created by yxl on 17/4/14.
@@ -62,6 +62,10 @@ object DateUtil {
       formatInt(calendar.get(Calendar.DAY_OF_MONTH)),
       formatInt(calendar.get(Calendar.HOUR_OF_DAY)),
       formatInt(calendar.get(Calendar.MINUTE)))
+  }
+
+  def getCurrentMills:Long = {
+      new Date().getTime
   }
 
 }
