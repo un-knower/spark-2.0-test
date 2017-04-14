@@ -35,13 +35,13 @@ object BeepertfTransEvent {
 
   def main(args: Array[String]) {
 
-    val conf = ConfigFactory.load("config_dev.conf")
+    val conf = ConfigFactory.load("config_pro.conf")
 
     val sparkConf = new SparkConf().setAppName("StateDirectKafkaWordCount")
     sparkConf.setMaster(conf.getString("spark_streaming.spark_master"))
     sparkConf.set("spark.streaming.stopGracefullyOnShutdown", "true")
 
-    val ssc = new StreamingContext(sparkConf, Seconds(10))
+    val ssc = new StreamingContext(sparkConf, Seconds(60))
 
     val topic = conf.getString("consumer.topic")
 
