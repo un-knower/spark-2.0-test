@@ -56,7 +56,8 @@ class ZooKeeperOffsetsStore(zkHosts: String) extends OffsetsStore {
       .mkString(",")
     println(s"Writing offsets to ZooKeeper: ${offsetsRangesStr}")
     zkUtils.updatePersistentPath(topicPath,offsetsRangesStr)
-
+    zkUtils.deletePathRecursive(topicPath)
   }
+
 
 }

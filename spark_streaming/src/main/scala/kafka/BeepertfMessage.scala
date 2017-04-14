@@ -5,8 +5,13 @@ import _root_.common.JsonUtil
 /**
   * Created by yxl on 17/4/14.
   */
-object BeepertfMessage {
 
+
+case class TransEventMessage(msgId: String, timestamp: String, eventType: String,
+                             driverId: String, adcId: String, status: String, eventPrice: String,
+                             isDel:String,completeTime:String)
+
+object BeepertfMessage {
   def parseMessage(message:String) : Option[TransEventMessage] = {
     val map = JsonUtil.toMap[Object](message)
     val data = map.get("data")
@@ -26,7 +31,9 @@ object BeepertfMessage {
             val adcId = eventValueMap.getOrElse("adc_id", "0").toString
             val status = eventValueMap.getOrElse("status", "0").toString
             val eventPrice = eventValueMap.getOrElse("cprice_per_day", "0").toString
-            Some(TransEventMessage(msgId, timestamp, eventType, driverId, adcId, status, eventPrice))
+            val isDel = eventValueMap.getOrElse("is_del","0").toString
+            val completeTime = eventValueMap.getOrElse("complete_time","0").toString
+            Some(TransEventMessage(msgId, timestamp, eventType, driverId, adcId, status, eventPrice,isDel,completeTime))
           }
         }
       }

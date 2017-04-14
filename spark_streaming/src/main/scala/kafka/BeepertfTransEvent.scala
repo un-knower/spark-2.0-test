@@ -25,23 +25,20 @@ import scala.collection.mutable.Map
   *
   */
 
-case class TransEventMessage(msgId: String, timestamp: String, eventType: String,
-                             driverId: String, adcId: String, status: String, eventPrice: String)
-
 object BeepertfTransEvent {
 
   @transient val log = LogManager.getRootLogger
- // log.setLevel(Level.INFO)
+  log.setLevel(Level.INFO)
 
   def main(args: Array[String]) {
 
-    val conf = ConfigFactory.load("config_pro.conf")
+    val conf = ConfigFactory.load("config_dev.conf")
 
     val sparkConf = new SparkConf().setAppName("StateDirectKafkaWordCount")
     sparkConf.setMaster(conf.getString("spark_streaming.spark_master"))
     sparkConf.set("spark.streaming.stopGracefullyOnShutdown", "true")
 
-    val ssc = new StreamingContext(sparkConf, Seconds(60))
+    val ssc = new StreamingContext(sparkConf, Seconds(conf.getInt("spark_streaming.batch_duration")))
 
     val topic = conf.getString("consumer.topic")
 
@@ -90,8 +87,7 @@ object BeepertfTransEvent {
 
       if(conf.getBoolean("spark_streaming.save_hdfs")){
         val hdfs = conf.getString("hadoop.hdfs")
-        val currentNext = DateUtil.getNextTenMinute(DateUtil.getCurrentMills)
-        val topicPath = hdfs + File.separator + topic + File.separator + currentNext + File.separator + DateUtil.getCurrentMills
+        val topicPath = hdfs + File.separator + topic + File.separator + DateUtil.getCurrentMills
         valueRDD.saveAsTextFile(topicPath)
       }
 
@@ -111,7 +107,19 @@ object BeepertfTransEvent {
       val eventDataFrame = line.toDF()
       eventDataFrame.createOrReplaceTempView("view_event_data")
 
-      val countDataFram = spark.sql("select * from view_event_data")
+      val sql =
+        """
+          | select
+          |   adcId,
+          |   timestamp,
+          |   count(distinct(if(status='400',driverId,null))) as sign_driver,
+          |   count(distinct(if(status='800',driverId,null))) as run_driver,
+          |   count(distinct(if(status='900',driverId,null))) as complete_driver,
+          |   sum(if(status = '900',eventPrice,0)) as event_price
+          |   from view_event_data where isDel = '0' group by adcId,timestamp
+        """.stripMargin
+
+      val countDataFram = spark.sql(sql)
 
       countDataFram.show()
 
