@@ -1,3 +1,4 @@
+import java.io.File
 import java.util.{Calendar, Date}
 
 import common.DateUtil
@@ -36,6 +37,10 @@ class TimeSuite extends FunSuite with Matchers with BeforeAndAfter{
      val minute = DateUtil.getNextTenMinute(mills)
      val dateTime = DateUtil.dateStr2DateTime(minute)
      println(dateTime)
+  }
+
+  test("file") {
+    println(File.separator)
   }
 
 }

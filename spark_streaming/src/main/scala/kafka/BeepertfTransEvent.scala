@@ -45,7 +45,7 @@ object BeepertfTransEvent {
 
     val topic = conf.getString("consumer.topic")
 
-    ssc.checkpoint(conf.getString("spark_streaming.spark_checkpoint") + File.pathSeparator + topic)
+    ssc.checkpoint(conf.getString("spark_streaming.spark_checkpoint") + File.separator + topic)
 
     val kafkaParams = Map[String, Object](
       "bootstrap.servers" -> conf.getString("consumer.bootstrap_servers"),
@@ -89,7 +89,7 @@ object BeepertfTransEvent {
       if(conf.getBoolean("spark_streaming.save_hdfs")){
         val hdfs = conf.getString("hadoop.hdfs")
         val currentNext = DateUtil.getNextTenMinute(DateUtil.getCurrentMills)
-        val topicPath = hdfs + File.pathSeparator + topic + File.pathSeparator + currentNext
+        val topicPath = hdfs + File.separator + topic + File.separator + currentNext
         rdd.saveAsTextFile(topicPath)
       }
 
