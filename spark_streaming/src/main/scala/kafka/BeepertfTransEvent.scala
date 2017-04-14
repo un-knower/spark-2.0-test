@@ -87,7 +87,7 @@ object BeepertfTransEvent {
 
       if(conf.getBoolean("spark_streaming.save_hdfs")){
         val hdfs = conf.getString("hadoop.hdfs")
-        val topicPath = hdfs + File.separator + topic + File.separator + DateUtil.getCurrentMills
+        val topicPath = hdfs + File.separator + topic + File.separator + DateUtil.getDay + File.separator + DateUtil.getCurrentMills
         valueRDD.saveAsTextFile(topicPath)
       }
 

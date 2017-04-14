@@ -15,6 +15,8 @@ object DateUtil {
 
   val SECONDS_FORMAT = "yyyy-MM-dd HH:mm:ss"
 
+  val DAY_FORMAT = "yyyy-MM-dd"
+
   val PERIOD_TEN = 600 * 1000
 
   def next(mills:Long,period:Long) = {
@@ -66,6 +68,11 @@ object DateUtil {
 
   def getCurrentMills:Long = {
       new Date().getTime
+  }
+
+  def getDay:String = {
+     val sdf = new SimpleDateFormat(DAY_FORMAT)
+     sdf.format(new Date())
   }
 
 }
