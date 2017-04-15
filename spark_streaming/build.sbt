@@ -8,7 +8,7 @@ resolvers += "Artima Maven Repository" at "http://repo.artima.com/releases"
 
 libraryDependencies += "org.apache.kafka" % "kafka_2.11" % "0.10.1.0"
 
-libraryDependencies += "com.typesafe" % "config" % "1.3.1"
+libraryDependencies += "com.typesafe" % "config" % "1.3.0"
 
 libraryDependencies += "mysql" % "mysql-connector-java" % "6.0.6"
 
