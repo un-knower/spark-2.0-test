@@ -34,7 +34,7 @@ object StoreBeepertfTransEvent {
 
     val conf = ConfigFactory.load("config_store.conf")
 
-    val sparkConf = new SparkConf().setAppName("StateDirectKafkaWordCount")
+    val sparkConf = new SparkConf().setAppName("StoreBeepertfTransEvent")
     sparkConf.setMaster(conf.getString("spark_streaming.spark_master"))
     sparkConf.set("spark.streaming.stopGracefullyOnShutdown", "true")
     sparkConf.set("spark.sql.shuffle.partitions","5")
