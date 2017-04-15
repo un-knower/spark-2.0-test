@@ -36,7 +36,7 @@ class TimeSuite extends FunSuite with Matchers with BeforeAndAfter{
      val mills = DateUtil.str2mills(str)
      val minute = DateUtil.getNextTenMinute(mills)
      val dateTime = DateUtil.dateStr2DateTime(minute)
-     println(dateTime)
+     println(dateTime.getDay)
   }
 
   test("file") {

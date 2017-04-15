@@ -7,7 +7,11 @@ import java.util.{Date, Calendar}
   * Created by yxl on 17/4/14.
   */
 
-case class DateTime(year:String,month:String,day:String,hour:String,minute:String)
+case class DateTime(year:String,month:String,day:String,hour:String,minute:String){
+   def getDay = year + "-" + month + "-" + day
+   def getHour = getDay + "_" + hour
+   def getMinute = getHour + "-" + minute
+}
 
 object DateUtil {
 

@@ -3,6 +3,9 @@ package common
 /**
   * Created by yxl on 17/4/13.
   */
+
+import java.io.File
+
 import kafka.utils.ZkUtils
 import org.I0Itec.zkclient.ZkClient
 import org.I0Itec.zkclient.exception.ZkMarshallingError
@@ -29,34 +32,44 @@ class ZooKeeperOffsetsStore(zkHosts: String) extends OffsetsStore {
 
   private val zkClient = new ZkClient(zkHosts, 10000, 10000,MyZKStringSerializer)
 
-  override def readOffsets(topic: String): Option[Map[TopicPartition, Long]] = {
-
-    val zkUtils = ZkUtils(zkClient,false)
-    val topicPath = "/" + topic
-    val (offsetsRangesStrOpt, _) = zkUtils.readDataMaybeNull(topicPath)
-
-    offsetsRangesStrOpt match {
-      case Some(offsetsRangesStr) =>
-        val offsets = offsetsRangesStr.split(",")
-          .map(s => s.split(":"))
-          .map { case Array(partitionStr, offsetStr) => ( new TopicPartition(topic, partitionStr.toInt) -> offsetStr.toLong) }
-          .toMap
-        Some(Map() ++ offsets)
-      case None =>
+  override def readOffsets(topic: String,consumer:String): Option[Map[TopicPartition, Long]] = {
+    try{
+      val zkUtils = ZkUtils(zkClient,false)
+      val topicPath = File.separator + topic + File.separator + consumer
+      val (offsetsRangesStrOpt, _) = zkUtils.readDataMaybeNull(topicPath)
+      zkUtils.close()
+      offsetsRangesStrOpt match {
+        case Some(offsetsRangesStr) =>
+          val offsets = offsetsRangesStr.split(",")
+            .map(s => s.split(":"))
+            .map { case Array(partitionStr, offsetStr) => ( new TopicPartition(topic, partitionStr.toInt) -> offsetStr.toLong) }
+            .toMap
+          Some(Map() ++ offsets)
+        case None =>
+          None
+      }
+    }catch{
+      case ex:Exception => {
+        log.error(ex)
         None
+      }
     }
-
   }
 
-  override def saveOffsets(topic:String,offsetRanges:Array[OffsetRange]): Unit = {
-
-    val zkUtils = ZkUtils(zkClient,false)
-    val topicPath = "/" + topic
-    val offsetsRangesStr = offsetRanges.map(offsetRange => s"${offsetRange.partition}:${offsetRange.fromOffset}")
-      .mkString(",")
-    log.info(s"Writing offsets to ZooKeeper: ${offsetsRangesStr}")
-    zkUtils.updatePersistentPath(topicPath,offsetsRangesStr)
-    zkUtils.deletePathRecursive(topicPath)
+  override def saveOffsets(topic:String,consumer:String,offsetRanges:Array[OffsetRange]): Unit = {
+    try{
+      val zkUtils = ZkUtils(zkClient,false)
+      val topicPath = File.separator + topic + File.separator + consumer
+      val offsetsRangesStr = offsetRanges.map(offsetRange => s"${offsetRange.partition}:${offsetRange.untilOffset}")
+        .mkString(",")
+      log.info(s"Writing offsets to ZooKeeper: ${offsetsRangesStr}")
+      zkUtils.updatePersistentPath(topicPath,offsetsRangesStr)
+      zkUtils.close()
+    }catch{
+      case ex:Exception => {
+        log.error(ex)
+      }
+    }
   }
 
 }

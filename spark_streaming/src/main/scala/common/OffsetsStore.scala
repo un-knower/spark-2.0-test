@@ -8,13 +8,13 @@ import scala.collection.mutable._
 /**
   * Created by yxl on 17/4/14.
   */
-trait OffsetsStore {
+trait OffsetsStore extends Serializable  {
 
   @transient val log = LogManager.getRootLogger
   log.setLevel(Level.INFO)
 
-  def readOffsets(topic: String): Option[Map[TopicPartition, Long]]
+  def readOffsets(topic: String,consumer:String): Option[Map[TopicPartition, Long]]
 
-  def saveOffsets(topic:String,offsetRanges:Array[OffsetRange]): Unit
+  def saveOffsets(topic:String,consumer:String,offsetRanges:Array[OffsetRange]): Unit
 
 }

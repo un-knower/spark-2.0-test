@@ -10,7 +10,7 @@ import scala.collection.mutable._
   */
 class MySQLOffsetsStore extends OffsetsStore {
 
-  override def readOffsets(topic: String): Option[Map[TopicPartition, Long]] = {
+  override def readOffsets(topic: String,consumer:String): Option[Map[TopicPartition, Long]] = {
     val conf = ConfigFactory.load("config_dev.conf")
     val offsetSQLConnection = DBUtil.createMySQLConnectionFactory(conf.getString("mysql_offset.url"),
       conf.getString("mysql_offset.userName"), conf.getString("mysql_offset.password"))
@@ -38,7 +38,7 @@ class MySQLOffsetsStore extends OffsetsStore {
     offset
   }
 
-   def saveOffsets(topic: String, offsetRanges: Array[OffsetRange]): Unit = {
+   def saveOffsets(topic: String,consumer:String, offsetRanges: Array[OffsetRange]): Unit = {
 
   }
 }

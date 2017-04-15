@@ -8,7 +8,7 @@ import org.apache.spark.sql.execution.datasources.jdbc.{DriverWrapper, DriverReg
 /**
   * Created by yxl on 17/4/12.
   */
-object DBUtil {
+object DBUtil extends Serializable {
 
   def createMySQLConnectionFactory(url: String, properties: Properties): Connection = {
     val userSpecifiedDriverClass = Option(properties.getProperty("driver"))

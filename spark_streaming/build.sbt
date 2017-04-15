@@ -16,6 +16,8 @@ libraryDependencies += "org.scalactic" %% "scalactic" % "3.0.1"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 
+libraryDependencies += "redis.clients" % "jedis" % "2.9.0"
+
 lazy val spark_version = "2.1.0"
 lazy val spark_lib = Seq(
   "org.apache.spark" %% "spark-core" % spark_version,

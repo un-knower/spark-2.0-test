@@ -9,19 +9,21 @@ class ZookeeperSuite extends FunSuite with Matchers with BeforeAndAfter {
 
   val topic = "test-write-read-offset"
 
+  val consumer = "consumer_2"
+
   val  zookeeperStore = new ZooKeeperOffsetsStore("localhost:2181")
 
   test("save offset") {
 
-    val offsetRange = OffsetRange(topic,0,1,10)
+    val offsetRange = OffsetRange(topic,0,1,11)
 
-    zookeeperStore.saveOffsets(topic,Seq(offsetRange).toArray)
+    zookeeperStore.saveOffsets(topic,consumer,Seq(offsetRange).toArray)
 
   }
 
   test("read offset"){
 
-    println(zookeeperStore.readOffsets(topic))
+    println(zookeeperStore.readOffsets(topic,consumer))
 
   }
 
