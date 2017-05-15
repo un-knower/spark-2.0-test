@@ -8,9 +8,42 @@ import java.util.{Date, Calendar}
   */
 
 case class DateTime(year:String,month:String,day:String,hour:String,minute:String){
-   def getDay = year + "-" + month + "-" + day
-   def getHour = getDay + "_" + hour
-   def getMinute = getHour + "-" + minute
+   def getDay = year + DateTime.DATESPLIT + month +DateTime.DATESPLIT + day
+   def getHour = getDay + DateTime.HOURSPLIT + hour
+   def getMinute = getHour + DateTime.DATESPLIT + minute
+}
+
+object DateTime {
+
+   val DATETIMEHOUR = "DATETIMEHOUR"
+
+   val DATETIMEMINUTE = "DATETIMEMINUTE"
+
+   val DATESPLIT = "-"
+   val HOURSPLIT = "_"
+
+   def apply(dateTimeStr:String,dateTimeType:String): DateTime = {
+        if(dateTimeType.equals(DATETIMEHOUR)){ // yyyy-MM-dd_HH
+            val dateTimeArray = dateTimeStr.split(HOURSPLIT)
+          val (year,month,day) = dateTimeArray(0).split(DATESPLIT).toSeq  match {
+            case Seq(year,month,day) => (year,month,day)
+          }
+          DateTime(year,month,day,dateTimeArray(1),"")
+        }else if(dateTimeType.equals(DATETIMEMINUTE)){ // yyyy-MM-dd_HH_mm
+          val dateTimeArray = dateTimeStr.split(HOURSPLIT)
+          val (year,month,day) = dateTimeArray(0).split(DATESPLIT).toSeq  match {
+            case Seq(year,month,day) => (year,month,day)
+          }
+          val (hour,minute) = dateTimeArray(1).split(DATESPLIT).toSeq match {
+            case Seq(hour,minute) => (hour,minute)
+          }
+          DateTime(year,month,day,hour,minute)
+        }
+        else {
+          throw new Exception(s"wrong datetime format $dateTimeStr")
+        }
+
+   }
 }
 
 object DateUtil {

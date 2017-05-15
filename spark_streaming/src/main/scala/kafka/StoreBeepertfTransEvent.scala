@@ -35,6 +35,11 @@ object StoreBeepertfTransEvent {
     val conf = ConfigFactory.load("config_store.conf")
 
     val sparkConf = new SparkConf().setAppName("StoreBeepertfTransEvent")
+
+    if(conf.hasPath("spark_streaming.spark_master")){
+      sparkConf.setMaster(conf.getString("spark_streaming.spark_master"))
+    }
+
     sparkConf.set("spark.streaming.stopGracefullyOnShutdown", "true")
     sparkConf.set("spark.sql.shuffle.partitions","5")
 

@@ -14,4 +14,8 @@ class ConfigSuite  extends FunSuite with Matchers with BeforeAndAfter {
 
    }
 
+  test("exists path"){
+    println(conf.hasPath("spark_streaming.spark_master"))
+  }
+
 }

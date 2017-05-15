@@ -1,22 +1,38 @@
 package common
 
-import org.apache.commons.pool2.impl.GenericObjectPoolConfig
-import redis.clients.jedis.JedisPool
+import com.typesafe.config.ConfigFactory
+import redis.clients.jedis.{Jedis, JedisSentinelPool, HostAndPort}
+import scala.collection.JavaConverters._
+
 
 /**
   * Created by yxl on 17/4/15.
   */
-object RedisUtil extends Serializable {
-  val redisHost = "10.10.4.130"
-  val redisPort = 6379
-  val redisTimeout = 30000
-  lazy val pool = new JedisPool(new GenericObjectPoolConfig(), redisHost, redisPort, redisTimeout)
+object RedisUtil extends Log {
 
-  lazy val hook = new Thread {
-    override def run = {
-      println("Execute hook thread: " + this)
-      pool.destroy()
+  val conf = ConfigFactory.load("config_dev.conf")
+  val sentinelMasterName = conf.getString("redis.sentinel_master")
+
+
+  def getPool(): JedisSentinelPool = {
+    val sentinels = conf.getString("redis.sentinel_host").split(",").map(
+      line => {
+        val hostPort = line.split(":")
+        new HostAndPort(hostPort(0),hostPort(1).toInt).toString
+      }
+    ).toSet.asJava
+    val pool = new JedisSentinelPool(sentinelMasterName,sentinels)
+    pool
+  }
+
+  def close(pool:JedisSentinelPool) = {
+    try{
+      pool.close()
+    }catch{
+      case ex:Exception => {
+         log.error(ex)
+      }
     }
   }
-  sys.addShutdownHook(hook.run)
+
 }

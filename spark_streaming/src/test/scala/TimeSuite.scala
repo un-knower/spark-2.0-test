@@ -1,7 +1,7 @@
 import java.io.File
 import java.util.{Calendar, Date}
 
-import common.DateUtil
+import common.{DateTime, DateUtil}
 import org.scalatest.{BeforeAndAfter, Matchers, FunSuite}
 
 /**
@@ -41,6 +41,15 @@ class TimeSuite extends FunSuite with Matchers with BeforeAndAfter{
 
   test("file") {
     println(File.separator)
+  }
+
+  test("DateTime") {
+
+    val dateTime = DateTime("2017-02-12_14-20",DateTime.DATETIMEMINUTE)
+
+    println(dateTime)
+
+
   }
 
 }

@@ -7,6 +7,7 @@ import com.fasterxml.jackson.module.scala.experimental.ScalaObjectMapper
   * Created by yxl on 17/4/14.
   */
 object JsonUtil extends Serializable {
+
   val mapper = new ObjectMapper() with ScalaObjectMapper
   mapper.registerModule(DefaultScalaModule)
   mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)

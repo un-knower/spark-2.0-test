@@ -3,7 +3,7 @@ package kafka
 
 import java.io.File
 
-import _root_.common.{DateUtil, ZooKeeperOffsetsStore}
+import _root_.common.{Log, RedisUtil, DateUtil, ZooKeeperOffsetsStore}
 import org.apache.commons.lang3.StringUtils
 import org.apache.kafka.common.TopicPartition
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -25,17 +25,20 @@ import scala.collection.mutable.Map
   *
   */
 
-object BeepertfTransEvent {
+object BeepertfTransEvent extends Log {
 
-  @transient val log = LogManager.getRootLogger
-  log.setLevel(Level.INFO)
+
 
   def main(args: Array[String]) {
 
-    val conf = ConfigFactory.load("config_pro.conf")
+    val conf = ConfigFactory.load("config_dev.conf")
 
     val sparkConf = new SparkConf().setAppName("BeepertfTransEvent")
-    sparkConf.setMaster(conf.getString("spark_streaming.spark_master"))
+
+    if(conf.hasPath("spark_streaming.spark_master")){
+      sparkConf.setMaster(conf.getString("spark_streaming.spark_master"))
+    }
+
     sparkConf.set("spark.streaming.stopGracefullyOnShutdown", "true")
     sparkConf.set("spark.sql.shuffle.partitions","5")
 
@@ -43,7 +46,8 @@ object BeepertfTransEvent {
 
     val topic = conf.getString("consumer.topic")
 
-    ssc.checkpoint(conf.getString("spark_streaming.spark_checkpoint") + File.separator + topic)
+    ssc.checkpoint(conf.getString("spark_streaming.spark_checkpoint") +
+            File.separator + conf.getString("spark_streaming.checkpoint_dir"))
 
     val kafkaParams = Map[String, Object](
       "bootstrap.servers" -> conf.getString("consumer.bootstrap_servers"),
@@ -110,7 +114,7 @@ object BeepertfTransEvent {
       val eventDataFrame = lines.toDF()
       eventDataFrame.createOrReplaceTempView("view_event_data")
 
-      // 计算 10min 签到司机, 在跑司机, 配送完成司机
+      // 10min 签到司机,在跑司机,配送完成司机,异常司机,基础运力价格
       val sql =
         """
           | select
@@ -119,6 +123,7 @@ object BeepertfTransEvent {
           |   count(distinct(if(status='400',driverId,null))) as sign_driver,
           |   count(distinct(if(status='800',driverId,null))) as run_driver,
           |   count(distinct(if(status='900',driverId,null))) as complete_driver,
+          |   count(distinct(if(status in ('450','500','600','950'),driverId,null))) as exception_driver,
           |   sum(if(status = '900',eventPrice,0)) as event_price
           |   from view_event_data where isDel = '0' group by adcId,timestamp
         """.stripMargin
@@ -127,27 +132,41 @@ object BeepertfTransEvent {
 
       countDriverDataFrame.show() // todo 写入 hbase
 
-      // 计算一个小时去重司机
+      // 1 hour
       lines.foreachPartition(partition => {
-         // redis connection
-
-        // val redisConnection = ???
+         val pool = RedisUtil.getPool()
+         val redisConnection = pool.getResource
          partition.foreach(eventMessage => {
               val dateTime = DateUtil.dateStr2DateTime(eventMessage.timestamp)
               val dateTimeHour = dateTime.getHour
               val status = eventMessage.status
               val driverId = eventMessage.driverId
-              // 2017-04-14_10@sign_driver ,  2017-04-14_10@run_driver , 2017-04-14_10@complete_driver  expire 1day
+              // 2017-04-14_10@sign_driver ,  2017-04-14_10@run_driver , 2017-04-14_10@complete_driver  expire 1 day
               val key = status match {
                 case "400" => dateTimeHour + "@sign_driver"
                 case "800" => dateTimeHour + "@run_driver"
                 case "900" => dateTimeHour + "@complete_driver"
+                case _ => if(Seq("450","500","600","950").contains(status))  dateTimeHour + "@exception_driver" else null
+              }
+              if(StringUtils.isNotEmpty(key)){
+                redisConnection.sadd(key,driverId)
+                redisConnection.expire(key,3600*24)
+              }
+
+              if("900".equals(status)){
+                 val eventPriceKey = dateTimeHour + "@event_price"
+                 val eventPrice = eventMessage.eventPrice.toInt
+                 redisConnection.incrBy(eventPriceKey,eventPrice)
+                 redisConnection.expire(eventPriceKey,3600*24)
               }
          })
+         redisConnection.close()
+         RedisUtil.close(pool)
       })
 
       // 读取数据
-      // redis connection
+      val pool = RedisUtil.getPool()
+      val redisConnection = pool.getResource
       lines.map(eventMessage => {
         val dateTime = DateUtil.dateStr2DateTime(eventMessage.timestamp)
         val dateTimeHour = dateTime.getHour
@@ -155,13 +174,22 @@ object BeepertfTransEvent {
       }).distinct()
         .collect()
         .foreach(timeHour => {
-          val sign_driver_key = timeHour + "@sign_driver"
-          val run_driver_key = timeHour + "@run_driver"
-          val complete_driver_key = timeHour + "@complete_driver"
-          // count
-          // save hbase  60
-      })
+          val signDriverKey = timeHour + "@sign_driver"
+          val runDriverKey = timeHour + "@run_driver"
+          val completeDriverKey = timeHour + "@complete_driver"
+          val exceptionDriverKey = timeHour + "@exception_driver"
+          val eventPriceKey = timeHour + "@event_price"
+          val signDriverCount = redisConnection.scard(signDriverKey)
+          val runDriverCount = redisConnection.scard(runDriverKey)
+          val completeDriverCount = redisConnection.scard(completeDriverKey)
+          val exceptionDriverCount = redisConnection.scard(exceptionDriverKey)
+          val eventPrice = redisConnection.get(eventPriceKey)
 
+          log.info(s"时间:$timeHour 注册司机:$signDriverCount 在跑司机:$runDriverCount 完成司机:$completeDriverCount  " +
+            s"异常司机:$exceptionDriverCount 基础运力费:$eventPrice")
+      })
+      redisConnection.close()
+      RedisUtil.close(pool)
 
       val offsetRanges = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
       offsetRanges.foreach(offsetRange => {
@@ -174,7 +202,6 @@ object BeepertfTransEvent {
 
     })
 
-    // Start the computation
     ssc.start()
     ssc.awaitTermination()
   }
