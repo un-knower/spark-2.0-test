@@ -3,8 +3,6 @@ package client.consumer
 import java.util.Properties
 
 import org.apache.kafka.clients.consumer.{ConsumerRecords, KafkaConsumer}
-import org.apache.kafka.common.TopicPartition
-
 import scala.collection.JavaConverters._
 
 /**
@@ -14,9 +12,9 @@ object ClientBaseConsumer {
 
     def main(args: Array[String]): Unit = {
 
-        val topic = "state-direct-kafka"
+        val topic = "binlog_beeper_tf_trans_event"
         val brokers = "kafka125.yn.com:9092,kafka126.yn.com:9092,kafka127.yn.com:9092"
-
+        // val brokers = "localhost:9092"
         val props = new Properties()
 
         props.put("bootstrap.servers", brokers)
