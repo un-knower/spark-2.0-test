@@ -4,7 +4,7 @@ scalaVersion := "2.11.8"
 
 version := "1.0"
 
-// resolvers += "jfrog" at "https://dl.bintray.com/cakesolutions/maven"
+resolvers += "jfrog" at "https://dl.bintray.com/cakesolutions/maven"
 
 resolvers += "Artima Maven Repository" at "http://repo.artima.com/releases"
 
