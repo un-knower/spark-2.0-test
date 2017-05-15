@@ -2,7 +2,7 @@ package kafka
 
 import java.io.File
 
-import _root_.common.{DateUtil, ZooKeeperOffsetsStore}
+import _root_.common.{Log, DateUtil, ZooKeeperOffsetsStore}
 import com.typesafe.config.ConfigFactory
 import org.apache.commons.lang3.StringUtils
 import org.apache.kafka.common.TopicPartition
@@ -25,9 +25,8 @@ import scala.collection.mutable.Map
   *
   */
 
-object StoreBeepertfTransEvent {
+object StoreBeepertfTransEvent extends Log{
 
-  @transient val log = LogManager.getRootLogger
   log.setLevel(Level.INFO)
 
   def main(args: Array[String]) {
@@ -68,6 +67,8 @@ object StoreBeepertfTransEvent {
       val offsetsStore = new ZooKeeperOffsetsStore(conf.getString("consumer.zookeeper"))
       offsetMap = offsetsStore.readOffsets(topic,conf.getString("consumer.group_id")).getOrElse(Map[TopicPartition, Long]())
     }
+
+    log.info(s"kafka OffsetMap:$offsetMap")
 
     val stream = KafkaUtils.createDirectStream[String, String](
       ssc,

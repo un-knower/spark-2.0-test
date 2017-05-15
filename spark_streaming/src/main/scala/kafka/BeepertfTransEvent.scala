@@ -69,6 +69,8 @@ object BeepertfTransEvent extends Log {
       offsetMap = offsetsStore.readOffsets(topic,conf.getString("consumer.group_id")).getOrElse(Map[TopicPartition, Long]())
     }
 
+    log.info(s"kafka OffsetMap:$offsetMap")
+
     val stream = KafkaUtils.createDirectStream[String, String](
       ssc,
       PreferConsistent,
