@@ -1,6 +1,6 @@
 package client.consumer
 
-import java.util.Properties
+import java.util.{UUID, Properties}
 
 import org.apache.kafka.clients.consumer.{ConsumerRecords, KafkaConsumer}
 import scala.collection.JavaConverters._
@@ -16,11 +16,11 @@ object ClientBaseConsumer {
         val brokers = "kafka125.yn.com:9092,kafka126.yn.com:9092,kafka127.yn.com:9092"
         // val brokers = "localhost:9092"
         val props = new Properties()
-
+        val id = UUID.randomUUID()
         props.put("bootstrap.servers", brokers)
-        props.put("group.id", s"ClientBaseConsumer-$topic")
+        props.put("group.id", s"ClientBaseConsumer-$topic-$id")
         props.put("auto.offset.reset", "latest")
-        props.put("enable.auto.commit", "true")
+        props.put("enable.auto.commit", "false")
         props.put("auto.commit.interval.ms", "5000")
         props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
         props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer")
