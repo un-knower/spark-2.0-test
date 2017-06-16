@@ -44,3 +44,5 @@ lazy val structured_streaming = (project in file("structured_streaming"))
 
 lazy val spark_streaming = (project in file("spark_streaming"))
   .settings(commonSettings: _*)
+
+lazy val spark_source = (project in file("spark_source"))

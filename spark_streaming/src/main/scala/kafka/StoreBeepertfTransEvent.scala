@@ -46,7 +46,8 @@ object StoreBeepertfTransEvent extends Log{
 
     val topic = conf.getString("consumer.topic")
 
-    ssc.checkpoint(conf.getString("spark_streaming.spark_checkpoint") + File.separator + topic)
+      ssc.checkpoint(conf.getString("spark_streaming.spark_checkpoint") +
+            File.separator + conf.getString("spark_streaming.checkpoint_dir"))
 
     val kafkaParams = Map[String, Object](
       "bootstrap.servers" -> conf.getString("consumer.bootstrap_servers"),
