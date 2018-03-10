@@ -33,7 +33,7 @@ import org.apache.spark.util.Utils
  * For unit tests, you can also call `new SparkConf(false)` to skip loading external settings and
  * get the same configuration no matter what the system properties are.
  *
- * All setter methods in this class support chaining. For example, you can write
+ * All setter methods in this class support chaining. For com.example, you can write
  * `new SparkConf().setMaster("local").setAppName("My app")`.
  *
  * Note that once a SparkConf object is passed to Spark, it is cloned and can no longer be modified
@@ -106,7 +106,7 @@ class SparkConf(loadDefaults: Boolean) extends Cloneable with Logging {
   /**
    * Set an environment variable to be used when launching executors for this application.
    * These variables are stored as properties of the form spark.executorEnv.VAR_NAME
-   * (for example spark.executorEnv.PATH) but this method makes them easier to set.
+   * (for com.example spark.executorEnv.PATH) but this method makes them easier to set.
    */
   def setExecutorEnv(variable: String, value: String): SparkConf = {
     set("spark.executorEnv." + variable, value)
@@ -115,7 +115,7 @@ class SparkConf(loadDefaults: Boolean) extends Cloneable with Logging {
   /**
    * Set multiple environment variables to be used when launching executors.
    * These variables are stored as properties of the form spark.executorEnv.VAR_NAME
-   * (for example spark.executorEnv.PATH) but this method makes them easier to set.
+   * (for com.example spark.executorEnv.PATH) but this method makes them easier to set.
    */
   def setExecutorEnv(variables: Seq[(String, String)]): SparkConf = {
     for ((k, v) <- variables) {

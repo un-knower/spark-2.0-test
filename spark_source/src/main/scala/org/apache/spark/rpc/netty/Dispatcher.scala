@@ -58,7 +58,7 @@ private[netty] class Dispatcher(nettyEnv: NettyRpcEnv) extends Logging {
   private var stopped = false
 
   def registerRpcEndpoint(name: String, endpoint: RpcEndpoint): NettyRpcEndpointRef = {
-    val addr = RpcEndpointAddress(nettyEnv.address, name)
+    val addr = RpcEndpointAddress(nettyEnv.address, name) // 获取 RpcAddress , name
     val endpointRef = new NettyRpcEndpointRef(nettyEnv.conf, addr, nettyEnv)
     synchronized {
       if (stopped) {

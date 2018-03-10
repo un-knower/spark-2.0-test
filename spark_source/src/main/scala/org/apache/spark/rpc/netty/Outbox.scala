@@ -188,7 +188,7 @@ private[netty] class Outbox(nettyEnv: NettyRpcEnv, val address: RpcAddress) {
 
       override def call(): Unit = {
         try {
-          val _client = nettyEnv.createClient(address)
+          val _client = nettyEnv.createClient(address) // 创建远程连接
           outbox.synchronized {
             client = _client
             if (stopped) {

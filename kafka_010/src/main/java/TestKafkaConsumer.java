@@ -17,8 +17,8 @@ public class TestKafkaConsumer {
 		props.put("auto.offset.reset", "earliest");
 		props.put("enable.auto.commit", "true");
 		props.put("auto.commit.interval.ms", "1000");
-		props.put("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
-		props.put("value.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
+		props.put("key.deserializer", "org.apache.kafka.com.common.serialization.StringDeserializer");
+		props.put("value.deserializer", "org.apache.kafka.com.common.serialization.StringDeserializer");
 		KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
 		consumer.subscribe(Arrays.asList("structured-streaming-kafka-test"));
 		while (true) {

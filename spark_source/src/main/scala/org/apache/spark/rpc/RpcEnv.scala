@@ -55,7 +55,7 @@ private[spark] object RpcEnv {
  *
  * [[RpcEnv]] also provides some methods to retrieve [[RpcEndpointRef]]s given name or uri.
  */
-private[spark] abstract class RpcEnv(conf: SparkConf) {
+abstract class RpcEnv(conf: SparkConf) {
 
   private[spark] val defaultLookupTimeout = RpcUtils.lookupRpcTimeout(conf)
 
@@ -90,7 +90,7 @@ private[spark] abstract class RpcEnv(conf: SparkConf) {
 
   /**
    * Retrieve the [[RpcEndpointRef]] represented by `address` and `endpointName`.
-   * This is a blocking action.
+   * This is a blocking action.  搜索RpcAddress 上对应的endpoint 可以是远程
    */
   def setupEndpointRef(address: RpcAddress, endpointName: String): RpcEndpointRef = {
     setupEndpointRefByURI(RpcEndpointAddress(address, endpointName).toString)
@@ -140,7 +140,7 @@ private[spark] abstract class RpcEnv(conf: SparkConf) {
 /**
  * A server used by the RpcEnv to server files to other processes owned by the application.
  *
- * The file server can return URIs handled by common libraries (such as "http" or "hdfs"), or
+ * The file server can return URIs handled by com.common libraries (such as "http" or "hdfs"), or
  * it can return "spark" URIs which will be handled by `RpcEnv#fetchFile`.
  */
 private[spark] trait RpcEnvFileServer {

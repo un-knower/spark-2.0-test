@@ -1,5 +1,6 @@
-import common.RedisUtil
-import org.scalatest.{BeforeAndAfter, Matchers, FunSuite}
+import org.scalatest.{BeforeAndAfter, FunSuite, Matchers}
+
+import com.util.RedisUtil
 
 /**
   * Created by yxl on 17/4/17.

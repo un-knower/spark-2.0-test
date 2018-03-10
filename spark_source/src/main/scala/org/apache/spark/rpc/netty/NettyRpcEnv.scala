@@ -39,7 +39,7 @@ import org.apache.spark.rpc._
 import org.apache.spark.serializer.{JavaSerializer, JavaSerializerInstance}
 import org.apache.spark.util.{ThreadUtils, Utils}
 
-private[netty] class NettyRpcEnv(
+class NettyRpcEnv(
     val conf: SparkConf,
     javaSerializerInstance: JavaSerializerInstance,
     host: String) extends RpcEnv(conf) with Logging {
@@ -49,9 +49,9 @@ private[netty] class NettyRpcEnv(
     "rpc",
     conf.getInt("spark.rpc.io.threads", 0))
 
-  private val dispatcher: Dispatcher = new Dispatcher(this)
+  private val dispatcher: Dispatcher = new Dispatcher(this) // 用来路由消息,把消息交给对应的RpcEndpoint
 
-  private val streamManager = new NettyStreamManager(this) // @FixMe 还没看
+  private val streamManager = new NettyStreamManager(this) // 用来处理文件(file,jar) 根据url 返回流
 
   private val transportContext = new TransportContext(transportConf,
     new NettyRpcHandler(dispatcher, this, streamManager))
@@ -104,7 +104,7 @@ private[netty] class NettyRpcEnv(
   def startServer(port: Int): Unit = {
     val bootstraps: java.util.List[TransportServerBootstrap] = java.util.Collections.emptyList()
     server = transportContext.createServer(host, port, bootstraps)
-    dispatcher.registerRpcEndpoint(
+    dispatcher.registerRpcEndpoint( // 用来处理客户端测试RpcEndpointRef
       RpcEndpointVerifier.NAME, new RpcEndpointVerifier(this, dispatcher))
   }
 
@@ -118,7 +118,7 @@ private[netty] class NettyRpcEnv(
   }
 
   def asyncSetupEndpointRefByURI(uri: String): Future[RpcEndpointRef] = {
-    val addr = RpcEndpointAddress(uri)
+    val addr = RpcEndpointAddress(uri) // 远程地址
     val endpointRef = new NettyRpcEndpointRef(conf, addr, this)
     val verifier = new NettyRpcEndpointRef(
       conf, RpcEndpointAddress(addr.rpcAddress, RpcEndpointVerifier.NAME), this)
@@ -138,7 +138,7 @@ private[netty] class NettyRpcEnv(
 
   private def postToOutbox(receiver: NettyRpcEndpointRef, message: OutboxMessage): Unit = {
     if (receiver.client != null) {
-      message.sendWith(receiver.client)
+      message.sendWith(receiver.client) // 连接已经创建,直接发送
     } else {
       require(receiver.address != null,
         "Cannot send message to client endpoint with no listen address.")
@@ -146,7 +146,7 @@ private[netty] class NettyRpcEnv(
         val outbox = outboxes.get(receiver.address)
         if (outbox == null) {
           val newOutbox = new Outbox(this, receiver.address)
-          val oldOutbox = outboxes.putIfAbsent(receiver.address, newOutbox)
+          val oldOutbox = outboxes.putIfAbsent(receiver.address, newOutbox) // 每个RpcEndpointRef 都有一个Outbox
           if (oldOutbox == null) {
             newOutbox
           } else {
@@ -430,7 +430,7 @@ class NettyRpcEnvFactory extends RpcEnvFactory with Logging {
       new JavaSerializer(sparkConf).newInstance().asInstanceOf[JavaSerializerInstance]
     val nettyEnv =
       new NettyRpcEnv(sparkConf, javaSerializerInstance, config.host)
-    if (!config.clientMode) {
+    if (!config.clientMode) { // 服务端启动server，客户端创建NettyEnv
       val startNettyRpcEnv: Int => (NettyRpcEnv, Int) = { actualPort =>
         nettyEnv.startServer(actualPort)
         (nettyEnv, nettyEnv.address.port)
@@ -469,7 +469,7 @@ class NettyRpcEnvFactory extends RpcEnvFactory with Logging {
  */
 private[netty] class NettyRpcEndpointRef(
     @transient private val conf: SparkConf,
-    endpointAddress: RpcEndpointAddress,
+    endpointAddress: RpcEndpointAddress, // 代表RpcEndpointRef 地址(远程)
     @transient @volatile private var nettyEnv: NettyRpcEnv)
   extends RpcEndpointRef(conf) with Serializable with Logging {
 
@@ -480,7 +480,7 @@ private[netty] class NettyRpcEndpointRef(
 
   override def address: RpcAddress = if (_address != null) _address.rpcAddress else null
 
-  private def readObject(in: ObjectInputStream): Unit = {
+  private def readObject(in: ObjectInputStream): Unit = { // 反序列化时调用
     in.defaultReadObject()
     nettyEnv = NettyRpcEnv.currentEnv.value
     client = NettyRpcEnv.currentClient.value

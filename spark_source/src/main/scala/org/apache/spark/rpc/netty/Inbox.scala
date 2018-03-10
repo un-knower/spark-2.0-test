@@ -87,7 +87,7 @@ private[netty] class Inbox(
   def process(dispatcher: Dispatcher): Unit = {
     var message: InboxMessage = null
     inbox.synchronized {
-      if (!enableConcurrent && numActiveThreads != 0) {
+      if (!enableConcurrent && numActiveThreads != 0) { // 同一时刻只能有一个线程处理消息
         return
       }
       message = messages.poll()

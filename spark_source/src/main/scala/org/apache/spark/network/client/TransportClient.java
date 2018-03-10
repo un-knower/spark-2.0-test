@@ -54,7 +54,7 @@ import static org.apache.spark.util.NettyUtils.getRemoteAddress;
  * method "sendRPC" is provided to enable control plane communication between the client and server
  * to perform this setup.
  *
- * For example, a typical workflow might be:
+ * For com.example, a typical workflow might be:
  * client.sendRPC(new OpenFile("/foo")) --&gt; returns StreamId = 100
  * client.fetchChunk(streamId = 100, chunkIndex = 0, callback)
  * client.fetchChunk(streamId = 100, chunkIndex = 1, callback)

@@ -1,4 +1,4 @@
-import common.{MyZKStringSerializer, ZooKeeperOffsetsStore}
+import com.common.{MyZKStringSerializer, ZooKeeperOffsetsStore}
 import kafka.utils.ZkUtils
 import org.I0Itec.zkclient.ZkClient
 import org.apache.spark.streaming.kafka010.{OffsetRange, KafkaUtils}

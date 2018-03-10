@@ -156,6 +156,7 @@ public class TransportRequestHandler extends MessageHandler<RequestMessage> {
 
   private void processRpcRequest(final RpcRequest req) {
     try {
+      logger.info("TransportRequestHandler: {}, TransportClient:{}, RpcHandler:{}", new Object[]{this,reverseClient, rpcHandler});
       rpcHandler.receive(reverseClient, req.body().nioByteBuffer(), new RpcResponseCallback() {
         @Override
         public void onSuccess(ByteBuffer response) {

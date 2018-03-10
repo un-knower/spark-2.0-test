@@ -1,8 +1,8 @@
 import java.io.File
 import java.util.{Calendar, Date}
 
-import common.{DateTime, DateUtil}
-import org.scalatest.{BeforeAndAfter, Matchers, FunSuite}
+import com.util.{DateTime, DateUtil}
+import org.scalatest.{BeforeAndAfter, FunSuite, Matchers}
 
 /**
   * Created by yxl on 17/4/14.

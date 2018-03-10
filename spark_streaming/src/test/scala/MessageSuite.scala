@@ -1,5 +1,5 @@
-import kafka.BeepertfMessage
-import org.scalatest.{BeforeAndAfter, Matchers, FunSuite}
+import com.kafka.Message
+import org.scalatest.{BeforeAndAfter, FunSuite, Matchers}
 
 /**
   * Created by yxl on 17/4/14.
@@ -13,7 +13,7 @@ class MessageSuite  extends FunSuite with Matchers with BeforeAndAfter {
 
   test("json read") {
 
-     println(BeepertfMessage.parseMessage(message))
+     println(Message.parseMessage(message))
 
 
   }

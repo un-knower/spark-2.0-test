@@ -162,7 +162,7 @@ private[spark] object SerializationDebugger extends Logging {
       // Every class is associated with one or more "slots", each slot refers to the parent
       // classes of this class. These slots are used by the ObjectOutputStream
       // serialization code to recursively serialize the fields of an object and
-      // its parent classes. For example, if there are the following classes.
+      // its parent classes. For com.example, if there are the following classes.
       //
       //     class ParentClass(parentField: Int)
       //     class ChildClass(childField: Int) extends ParentClass(1)

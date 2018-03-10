@@ -1,7 +1,8 @@
 import com.typesafe.config.ConfigFactory
-import common.DBUtil
+import com.util.DBUtil
 import org.apache.kafka.common.TopicPartition
-import org.scalatest.{Matchers, FunSuite, BeforeAndAfter}
+import org.scalatest.{BeforeAndAfter, FunSuite, Matchers}
+
 import scala.collection.mutable.Map
 
 /**

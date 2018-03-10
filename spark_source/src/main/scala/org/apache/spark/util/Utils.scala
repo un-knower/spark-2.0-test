@@ -238,7 +238,7 @@ private[spark] object Utils extends Logging {
                     if (offset >= maxRetries) {
                         val exceptionMessage = s"${e.getMessage}: Service$serviceString failed after " +
                         s"$maxRetries retries! Consider explicitly setting the appropriate port for the " +
-                        s"service$serviceString (for example spark.ui.port for SparkUI) to an available " +
+                        s"service$serviceString (for com.example spark.ui.port for SparkUI) to an available " +
                         "port or increasing spark.port.maxRetries."
                         val exception = new BindException(exceptionMessage)
                         // restore original stack trace

@@ -15,8 +15,13 @@ object RemoteEnv {
         val config = RpcEnvConfig(conf, "RemoteEnv", "127.0.0.1", 10086, clientMode = false)
         val remoteEnv = new NettyRpcEnvFactory().create(config)
         println(s"address:${remoteEnv.address}")
+
         remoteEnv.setupEndpoint("printEndpoint",new RpcEndpoint{
+
+
             override val rpcEnv = remoteEnv
+
+
             override def receive: PartialFunction[Any, Unit] = {
                 case msg:String => {
                      println(msg)

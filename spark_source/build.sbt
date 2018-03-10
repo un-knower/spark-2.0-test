@@ -1,4 +1,4 @@
-name := "spark_source"
+name := "spark-source"
 
 scalaVersion := "2.11.8"
 

@@ -30,7 +30,7 @@ import java.nio.ByteBuffer;
  * - {@link NettyManagedBuffer}: data backed by a Netty ByteBuf
  *
  * The concrete buffer implementation might be managed outside the JVM garbage collector.
- * For example, in the case of {@link NettyManagedBuffer}, the buffers are reference counted.
+ * For com.example, in the case of {@link NettyManagedBuffer}, the buffers are reference counted.
  * In that case, if the buffer is going to be passed around to a different thread, retain/release
  * should be called.
  */
