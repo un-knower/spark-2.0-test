@@ -33,7 +33,8 @@ object TestSameFriend extends BaseSession {
         val friends = data
         .map(x => {
             x._2.map(y => {(y, x._1)})
-        }).flatMap(x => x)
+        })
+        .flatMap(x => x)
         .groupByKey()
         .filter(x => x._2.size > 1)
         .map(x => {

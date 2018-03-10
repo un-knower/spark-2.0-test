@@ -6,7 +6,7 @@ import org.apache.curator.retry.ExponentialBackoffRetry
 /**
   * Created by yxl on 17/5/16.
   */
-object curatorMain {
+object CuratorMain {
 
     def main(args: Array[String]) {
 
