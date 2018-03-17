@@ -1,8 +1,7 @@
 package com.example
 
-import java.util.concurrent.TimeUnit
-
-import org.apache.spark.sql.SparkSession
+import base.StructuredBase
+import monitor.MonitorServer
 import org.apache.spark.sql.streaming._
 import org.apache.spark.sql.streaming.StreamingQueryListener.{QueryProgressEvent, QueryStartedEvent, QueryTerminatedEvent}
 
@@ -10,19 +9,13 @@ import org.apache.spark.sql.streaming.StreamingQueryListener.{QueryProgressEvent
   * Created by yxl on 2018/1/16.
   */
 
-class AutoStop extends  Closed {
-    private var query : StreamingQuery = _
+object AutoStop extends StructuredBase with MonitorServer {
 
-    def run(): Unit = {
+    override protected val appName: String = "AutoStop"
 
-        super.init()
+    def main(args: Array[String]): Unit = {
 
-        val spark = SparkSession.builder
-        .master("local[2]")
-        .appName("AutoStop")
-        .config("spark.sql.shuffle.partitions", "2")
-        .config("spark.local.dir", "/Users/yxl/data/spark.dir")
-        .getOrCreate()
+        val spark = super.submitSpark
 
         import spark.implicits._
 
@@ -48,31 +41,10 @@ class AutoStop extends  Closed {
 
         val wordsCounts = words.groupBy("value").count()
 
-        val writeStream = wordsCounts.writeStream
-        .outputMode(OutputMode.Complete())
-        .trigger(ProcessingTime.create(2, TimeUnit.SECONDS))
-        .queryName("AutoStop")
-        .format("console")
+        val query = consoleShow(wordsCounts,10,OutputMode.Complete())
 
-        query = writeStream.start()
-
-        query.awaitTermination()
+        monitorAndAwaitTermination(Some(query),2000)
 
         spark.stop()
-
     }
-
-    override def stop(): Unit = {
-        query.stop()
-
-    }
-}
-
-object AutoStop {
-
-    def main(args: Array[String]): Unit = {
-         val autoStop = new AutoStop()
-         autoStop.run()
-    }
-
 }

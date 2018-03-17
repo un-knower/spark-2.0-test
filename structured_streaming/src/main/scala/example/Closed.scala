@@ -9,6 +9,8 @@ import scala.util.Random
   */
 abstract class Closed {
 
+
+
     def init() = {
         val thread = new Thread(new Runnable {
             override def run(): Unit = {

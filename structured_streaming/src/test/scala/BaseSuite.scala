@@ -1,4 +1,7 @@
+import java.util.Random
+
 import org.scalatest.{BeforeAndAfter, FunSuite, Matchers}
+import util.DateUtil
 
 import scala.util.Try
 
@@ -12,5 +15,11 @@ class BaseSuite extends FunSuite with Matchers with BeforeAndAfter {
         val time = Try(Some(columns(2))).getOrElse(None)
         println(time)
     }
+
+    test("current"){
+        val s = DateUtil.CURRENT
+        println(s)
+    }
+
 
 }

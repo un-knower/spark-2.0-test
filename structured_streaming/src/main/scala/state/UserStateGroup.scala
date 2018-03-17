@@ -7,12 +7,16 @@ import base.StructuredBase
 import org.apache.commons.lang3.StringUtils
 import org.apache.spark.sql.streaming.{GroupState, GroupStateTimeout, OutputMode, Trigger}
 import org.joda.time.format.DateTimeFormat
+import util.DateUtil
 
 /**
-  *  nc -lk 9999
-  *  a,bike,2018-03-06 10:52:07
-  *  b,bike,2018-03-06 10:53:07
-  *  a,bike,2018-03-06 10:53:07
+  * nc -lk 9999
+  * a,bike,2018-03-06 10:52:07
+  * b,bike,2018-03-06 10:53:07
+  * a,bike,2018-03-06 10:53:07
+  *
+  * 输出
+  * a,bike,2018-03-06 10:52:07,2018-03-06 10:53:07
   */
 
 object UserStateGroup extends StructuredBase {
@@ -23,48 +27,74 @@ object UserStateGroup extends StructuredBase {
 
         import spark.implicits._
 
-        //根据给定的InputRow 更新 UserState
-        def updateUserStateWithEvent(state: UserState, input: InputRow): UserState = {
-            if (Option(input.timestamp).isEmpty) {
-                return state
-            }
-            //update exists
-            if (state.activity == input.activity) {
-                if (input.timestamp.after(state.end)) {
-                    state.end = input.timestamp
-                }
-                if (input.timestamp.before(state.start)) {
-                    state.start = input.timestamp
-                }
-            } else {
-                //create new
-                if (input.timestamp.after(state.end)) {
-                    state.start = input.timestamp
-                    state.end = input.timestamp
-                    state.activity = input.activity
-                }
-            }
-            //return the updated state
-            state
-        }
+        super.addListener(format = false)
 
+        def updateUserState(userState: UserState, inputs: Iterator[InputRow]): UserState = {
+            println(s"old user state:${userState}")
+            for (input <- inputs) {
+                if (input.timestamp.after(userState.end)) {
+                    userState.end = input.timestamp
+                }
+                if (input.timestamp.before(userState.start)) {
+                    userState.start = input.timestamp
+                }
+                // 标记
+                if(!Seq("init","expire").contains(userState.activity)){
+                    userState.activity = input.activity
+                }
+            }
+            println(s"current user state:${userState}")
+            userState
+        }
 
         def updateAcrossEvents(user: String,
                                inputs: Iterator[InputRow],
-                               oldState: GroupState[UserState]): UserState = {
-            var state: UserState = if (oldState.exists) oldState.get else UserState(user,
-                "",
-                new Timestamp(6284160000000L),
-                new Timestamp(6284160L)
-            )
-            // we simply specify an old date that we can compare against and
-            // immediately update based on the values in our data
-
-            for (input <- inputs) {
-                state = updateUserStateWithEvent(state, input)
-                oldState.update(state)
+                               state: GroupState[UserState]): UserState = {
+            val userState: UserState = if (state.exists) {
+                val oldUserState = state.get
+                oldUserState.activity = "normal"
+                oldUserState
+            } else {
+                println("create new user state !")
+                UserState(user, "init", start = DateUtil.dateStr2Timestamp(DateUtil.getCurrent),
+                    end = DateUtil.dateStr2Timestamp(DateUtil.START))
             }
-            state
+            val newState = updateUserState(userState, inputs)
+            // 更新state
+            state.update(newState)
+            newState
+        }
+
+        def updateAcrossEventsWithEventTime(user: String,
+                                            inputs: Iterator[InputRow],
+                                            state: GroupState[UserState]): UserState = {
+            val userState = if (state.hasTimedOut) {
+                state.remove()
+                println("state expire !")
+                val userState = UserState(user, "expire", start = DateUtil.dateStr2Timestamp(DateUtil.getCurrent),
+                    end = DateUtil.dateStr2Timestamp(DateUtil.START))
+                val newUserState = updateUserState(userState,inputs)
+                state.update(newUserState)
+                state.setTimeoutTimestamp(newUserState.end.getTime, "1 minute") // 如果超时，则设置EventTime 最大时间
+                newUserState
+            }else if(state.exists){
+                val existsUserState= state.get
+                existsUserState.activity = "normal"
+                val newUserState = updateUserState(existsUserState,inputs)
+                state.update(newUserState)
+                newUserState
+            }else{
+                println("state init !")
+                val userState = UserState(user, "init", start = DateUtil.dateStr2Timestamp(DateUtil.getCurrent),
+                    end = DateUtil.dateStr2Timestamp(DateUtil.START))
+                val newUserState = updateUserState(userState,inputs)
+                val timeout = DateUtil.dateStr2Timestamp("2018-03-06 09:56:00")
+                println(s"state timeout:${timeout}")
+                state.setTimeoutTimestamp(timeout.getTime - 8 * 3600 * 1000, "1 minute") // 新创建，则设置EventTime 最小时间
+                state.update(newUserState)
+                newUserState
+            }
+            userState
         }
 
         val lines = spark.readStream
@@ -84,15 +114,26 @@ object UserStateGroup extends StructuredBase {
             val timestamp = new Timestamp(dateTime.getMillis())
             InputRow(array(0), timestamp, array(1))
         })
+        .withWatermark("timestamp", "1 minute")
         .groupByKey(_.user)
-        .mapGroupsWithState(GroupStateTimeout.NoTimeout)(updateAcrossEvents)
+
+        // 没有设置过期时间
+        // .mapGroupsWithState(GroupStateTimeout.NoTimeout)(updateAcrossEvents)
+
+        // EventTime Timeout
+        // 过期时间类型设置为EventTime时，需要声明watermark. EventTime 小于watermark设置的时间则被过滤掉。
+        // 通过setTimeoutTimestamp()设置超时，当设置的时间小于watermark时发生超时
+        .mapGroupsWithState(GroupStateTimeout.EventTimeTimeout())(updateAcrossEventsWithEventTime)
+
+        // ProcessingTime Timeout
+        //.mapGroupsWithState(GroupStateTimeout.ProcessingTimeTimeout())(updateAcrossEvents)
 
 
         val query = sessionUpdates.writeStream
         .queryName("UserStateGroup")
         .format("console")
         .outputMode(OutputMode.Update())
-        .trigger(Trigger.ProcessingTime(10,TimeUnit.SECONDS))
+        .trigger(Trigger.ProcessingTime(10, TimeUnit.SECONDS))
         .start()
 
         query.awaitTermination()
