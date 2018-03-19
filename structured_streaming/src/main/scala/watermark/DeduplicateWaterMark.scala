@@ -31,7 +31,7 @@ object DeduplicateWaterMark extends StructuredBase {
           * 如果使用watermark , 会根据watermark 规则移除state保存的数据
           */
         .withWatermark("timestamp", "1 minute")
-        .dropDuplicates("id","timestamp")
+        .dropDuplicates("id","timestamp") // 移除重复数据
 
         val query = consoleShow(duplicates, 10, OutputMode.Append())
 

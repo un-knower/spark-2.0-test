@@ -23,22 +23,26 @@ class ShutdownHandler(server:Server,streamingQuery: StreamingQuery) extends Abst
         val queryName = streamingQuery.name
         logger.info(s"停止StreamingQuery:${queryName}")
 
-        // 处理逻辑
-        streamingQuery.stop()
+        try {
+            // 处理逻辑
+            streamingQuery.stop()
 
-        val out = response.getWriter
-        out.print(s"${queryName} has shutdown")
-        out.close()
-
-        // 停止server
-        try{
-            server.stop()
-        }catch {
-            case e:Exception =>{
-                logger.error("停止jetty 异常",e)
+            val out = response.getWriter
+            out.print(s"${queryName} has shutdown")
+            out.close()
+        } catch {
+            case e:Exception => {
+                logger.error(s"停止StreamingQuery:${queryName}异常",e)
+            }
+        } finally {
+            try{
+                server.stop()
+            }catch{
+                case e:Exception =>{
+                    logger.error("停止jetty 异常",e)
+                }
             }
         }
-
     }
 }
 
@@ -179,8 +183,5 @@ trait MonitorServer extends Log {
                 logger.info("StreamingQuery 为空")
             }
         }
-
     }
-
-
 }
