@@ -26,6 +26,12 @@ object DateUtil {
         timestamp
     }
 
+
+    def mills2Timestamp(mills:Long):Timestamp = {
+        val timestamp = new Timestamp(mills)
+        timestamp
+    }
+
     /**
       * 获取当前日期
       * @return
