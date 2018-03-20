@@ -102,7 +102,7 @@ object SessionStateGroup extends StructuredBase {
                                                  events: Iterator[Event],
                                                  state: GroupState[SessionInfo]): SessionUpdate = {
 
-            if (state.hasTimedOut) {
+            if (state.hasTimedOut) { // 超时的State 依然可以获取，需要手动处理超时情况
                 println("state expire !")
                 val finalSessionUpdate = SessionUpdate(
                     sessionId,

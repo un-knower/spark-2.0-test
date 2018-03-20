@@ -27,4 +27,3 @@ case class SessionUpdate(
                         numEvents:Int,
                         expired:Boolean
                         )
-
