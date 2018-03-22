@@ -9,13 +9,13 @@ import org.apache.spark.sql.streaming.StreamingQueryListener.{QueryProgressEvent
   * Created by yxl on 2018/1/16.
   */
 
-object AutoStop extends StructuredBase with MonitorServer {
+object AutoStop extends StructuredBase {
 
     override protected val appName: String = "AutoStop"
 
     def main(args: Array[String]): Unit = {
 
-        val spark = super.submitSpark
+        //val spark = super.submitSpark
 
         import spark.implicits._
 
@@ -43,7 +43,9 @@ object AutoStop extends StructuredBase with MonitorServer {
 
         val query = consoleShow(wordsCounts,10,OutputMode.Complete())
 
-        monitorAndAwaitTermination(Some(query),2000)
+        import monitor.MonitorImplicits._
+
+        query.monitorAndAwaitTermination()
 
         spark.stop()
     }

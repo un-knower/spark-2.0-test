@@ -35,13 +35,7 @@ class ShutdownHandler(server:Server,streamingQuery: StreamingQuery) extends Abst
                 logger.error(s"停止StreamingQuery:${queryName}异常",e)
             }
         } finally {
-            try{
-                server.stop()
-            }catch{
-                case e:Exception =>{
-                    logger.error("停止jetty 异常",e)
-                }
-            }
+            MonitorServer.stopServer(server)
         }
     }
 }
@@ -73,7 +67,7 @@ class TimeHandler extends AbstractHandler with Log {
     }
 }
 
-trait MonitorServer extends Log {
+object MonitorServer extends Log {
 
     private def randomInt(min: Int, max: Int): Int = {
         val item = Random.nextInt(65536)
@@ -105,7 +99,7 @@ trait MonitorServer extends Log {
         (connector, connector.getLocalPort)
     }
 
-    private def httpServer(port: Int, streamingQuery: StreamingQuery): (String,Int) = {
+    def startServer(port: Int, streamingQuery: StreamingQuery): (String,Int,Server) = {
         require(port == 0 || (1024 <= port && port < 65536), s"启动端口非法:${port}")
         val host = NetWorkUtil.getLocalAddress()
         val maxRetry = 3
@@ -158,30 +152,17 @@ trait MonitorServer extends Log {
 
         server.addConnector(connector)
 
-        return (host,startPort)
+        return (host,startPort,server)
     }
 
-    /**
-      * 启动 jetty server 提供监控(status) 停止(shutdown) 时间(time) http 访问接口
-      * @param streamingQuery
-      * @param userPort
-      */
-    def monitorAndAwaitTermination(streamingQuery: Option[StreamingQuery],userPort:Int = 0): Unit ={
-        streamingQuery match {
-            case Some(query) => {
-                val (host,port) = httpServer(userPort,query)
-                logger.info(s"启动jetty 服务器 ${host}:${port}")
-                try{
-                    query.awaitTermination()
-                }catch{
-                    case e:StreamingQueryException => {
-                        logger.error("停止StreamingQuery异常",e)
-                    }
-                }
-            }
-            case None => {
-                logger.info("StreamingQuery 为空")
+    def stopServer(server:Server): Unit ={
+        try{
+            server.stop()
+        }catch{
+            case e:Exception =>{
+                logger.error("停止jetty 异常",e)
             }
         }
     }
+
 }
