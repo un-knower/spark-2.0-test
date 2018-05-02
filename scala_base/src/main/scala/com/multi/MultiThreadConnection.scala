@@ -5,6 +5,7 @@ import java.util.concurrent.{Callable, CountDownLatch, Executors, TimeUnit}
 import com.util.DBUtil
 
 import scala.collection.mutable
+import scala.util.Random
 
 /**
   * Created by yxl on 2018/3/13.
@@ -21,20 +22,10 @@ object MultiThreadConnection {
         val url = "jdbc:mysql://localhost:3306/test"
         val table = "t_score"
 
-        val scores = Seq(
-            Score(1, 1.0),
-            Score(1, 2.0),
-            Score(2, 3.0),
-            Score(2, 4.0),
-            Score(3, 2.0),
-            Score(3, 2.0),
-            Score(1, 2.0),
-            Score(1, 2.0),
-            Score(1, 1.0),
-            Score(1, 2.0),
-            Score(2, 3.0),
-            Score(2, 4.0),
-            Score(3, 2.0)
+        val scores = (0 until 4000).map(
+            x =>{
+                Score(Random.nextInt(3),Random.nextInt(5))
+            }
         )
 
         class MyUncaughtExceptionHandler extends Thread.UncaughtExceptionHandler {

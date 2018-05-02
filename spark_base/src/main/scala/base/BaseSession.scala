@@ -14,6 +14,7 @@ trait BaseSession {
     .master("local[2]")
     .appName(appName)
     .config("spark.sql.shuffle.partitions", "2")
+    .config("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
     .getOrCreate()
 
 }

@@ -28,7 +28,7 @@
 
     <property>
           <name>hbase.rootdir</name>
-          <value>hdfs://myhost:8020/user/hbase</value>
+          <value>hdfs://localhost:8020/user/hbase</value>
     </property>
 
     <property>

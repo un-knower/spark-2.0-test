@@ -141,7 +141,7 @@ object MonitorServer extends Log {
                         if (index >= maxRetry) {
                             throw e
                         }
-                        logger.info(s"端口:${tryPort}被占用随机生成[1024,65536)端口")
+                        logger.info(s"端口:${tryPort}被占用随机生成(1024,65536)端口")
                     }
                 }
             }
@@ -156,6 +156,7 @@ object MonitorServer extends Log {
     }
 
     def stopServer(server:Server): Unit ={
+        logger.info(s"停止server")
         try{
             server.stop()
         }catch{

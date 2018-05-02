@@ -4,8 +4,6 @@ import com.util.HbaseUtil
 import org.apache.hadoop.hbase._
 import org.apache.hadoop.hbase.client._
 import org.apache.hadoop.hbase.util.Bytes
-import org.apache.spark.scheduler.ExternalClusterManager
-import org.apache.spark.util.Utils
 import org.scalatest.{BeforeAndAfter, FunSuite, Matchers}
 
 /**
